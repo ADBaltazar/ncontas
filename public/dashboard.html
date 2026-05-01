@@ -1,1 +1,1141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ncontas - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
+        :root {
+            --primary: #0046B8;
+            --secondary: #F6B125;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #003399 100%);
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon i {
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--dark-gray);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--white);
+            padding: 0.5rem 2rem;
+            display: flex;
+            gap: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-link {
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            color: var(--dark-gray);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-info p {
+            color: var(--dark-gray);
+            opacity: 0.7;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 70, 184, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        /* Filters */
+        .filters-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filters-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .filter-select, .filter-input {
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Table */
+        .table-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: var(--light-gray);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(0, 70, 184, 0.03);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-pendente { background: rgba(246, 177, 37, 0.2); color: #856404; }
+        .badge-em_andamento { background: rgba(0, 70, 184, 0.2); color: var(--primary); }
+        .badge-resolvido { background: rgba(40, 167, 69, 0.2); color: var(--success); }
+        .badge-baixa { background: rgba(40, 167, 69, 0.2); color: var(--success); }
+        .badge-media { background: rgba(246, 177, 37, 0.2); color: #856404; }
+        .badge-alta, .badge-urgente { background: rgba(220, 53, 69, 0.2); color: var(--danger); }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-view { background: rgba(0, 70, 184, 0.1); color: var(--primary); }
+        .btn-edit { background: rgba(246, 177, 37, 0.1); color: #856404; }
+        .btn-resolve { background: rgba(40, 167, 69, 0.1); color: var(--success); }
+        .btn-delete { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #003399;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--dark-gray);
+        }
+
+        .btn-secondary:hover {
+            background: #e0a020;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .close-modal {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark-gray);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            animation: slideIn 0.3s ease;
+            z-index: 1100;
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--danger); }
+        .toast-info { background: var(--primary); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 1rem; text-align: center; }
+            .nav { flex-wrap: wrap; justify-content: center; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-headset"></i></div>
+            <div>
+                <div class="logo-text">Ncontas</div>
+                <div style="font-size: 0.8rem; opacity: 0.8;">Central de Gestão</div>
+            </div>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">A</div>
+            <div>
+                <div id="userName">Carregando...</div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <a class="nav-link active" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a class="nav-link" onclick="showSection('estatisticas')"><i class="fas fa-chart-bar"></i> Estatísticas</a>
+        <a class="nav-link" onclick="showSection('relatorios')"><i class="fas fa-file-alt"></i> Relatórios</a>
+        <a class="nav-link" onclick="showSection('usuarios')"><i class="fas fa-users"></i> Utilizadores</a>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3 id="totalSolicitacoes">0</h3>
+                        <p>Total de Solicitações</p>
+                    </div>
+                    <div class="stat-icon"><i class="fas fa-list"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3 id="pendentesCount">0</h3>
+                        <p>Pendentes</p>
+                    </div>
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3 id="andamentoCount">0</h3>
+                        <p>Em Andamento</p>
+                    </div>
+                    <div class="stat-icon"><i class="fas fa-cog"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3 id="resolvidasCount">0</h3>
+                        <p>Resolvidas</p>
+                    </div>
+                    <div class="stat-icon"><i class="fas fa-check"></i></div>
+                </div>
+            </div>
+
+            <div class="filters-card">
+                <div class="filters-header">
+                    <h3><i class="fas fa-filter"></i> Filtros</h3>
+                    <button class="btn btn-primary" onclick="openNovaSolicitacaoModal()">
+                        <i class="fas fa-plus"></i> Nova Solicitação
+                    </button>
+                </div>
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select id="filterStatus" class="filter-select" onchange="applyFilters()">
+                            <option value="all">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="em_andamento">Em Andamento</option>
+                            <option value="resolvido">Resolvido</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Prioridade</label>
+                        <select id="filterPrioridade" class="filter-select" onchange="applyFilters()">
+                            <option value="all">Todas</option>
+                            <option value="baixa">Baixa</option>
+                            <option value="media">Média</option>
+                            <option value="alta">Alta</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Cliente</label>
+                        <input type="text" id="filterCliente" class="filter-input" placeholder="Nome do cliente..." onkeyup="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <h3><i class="fas fa-table"></i> Solicitações Recentes</h3>
+                    <div>Mostrando <span id="totalExibidos">0</span> de <span id="totalRegistros">0</span></div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr><th>Código</th><th>Cliente</th><th>Assunto</th><th>Prioridade</th><th>Status</th><th>Data</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody id="solicitacoesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas Section -->
+        <div id="estatisticas-section" class="section">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title"><i class="fas fa-chart-pie"></i> Distribuição por Status</div>
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title"><i class="fas fa-chart-pie"></i> Distribuição por Prioridade</div>
+                    <canvas id="prioridadeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relatórios Section -->
+        <div id="relatorios-section" class="section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3><i class="fas fa-file-alt"></i> Relatório Geral</h3>
+                    <button class="btn btn-secondary" onclick="exportarRelatorio()">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>Código</th><th>Cliente</th><th>Assunto</th><th>Status</th><th>Data</th></tr></thead>
+                        <tbody id="relatorioTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utilizadores Section -->
+        <div id="usuarios-section" class="section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3><i class="fas fa-users"></i> Utilizadores do Sistema</h3>
+                    <button class="btn btn-primary" onclick="openNovoUsuarioModal()">
+                        <i class="fas fa-user-plus"></i> Novo Utilizador
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>Nome</th><th>Email</th><th>Tipo</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody id="usuariosTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nova Solicitação -->
+    <div id="novaSolicitacaoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nova Solicitação</h3>
+                <span class="close-modal" onclick="closeModal('novaSolicitacaoModal')">&times;</span>
+            </div>
+            <form id="novaSolicitacaoForm">
+                <div class="form-group">
+                    <label class="form-label">Nome do Cliente *</label>
+                    <input type="text" id="clienteNome" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" id="clienteEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" id="clienteTelefone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assunto *</label>
+                    <input type="text" id="titulo" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoria</label>
+                    <select id="categoria" class="form-control">
+                        <option value="faturacao">Faturação</option>
+                        <option value="servico">Serviço</option>
+                        <option value="tecnico">Técnico</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição *</label>
+                    <textarea id="descricao" class="form-control" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Editar Solicitação -->
+    <div id="editarSolicitacaoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Solicitação</h3>
+                <span class="close-modal" onclick="closeModal('editarSolicitacaoModal')">&times;</span>
+            </div>
+            <form id="editarSolicitacaoForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label class="form-label">Nome do Cliente *</label>
+                    <input type="text" id="editClienteNome" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" id="editClienteEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" id="editClienteTelefone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assunto *</label>
+                    <input type="text" id="editTitulo" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="editStatus" class="form-control">
+                        <option value="pendente">Pendente</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="resolvido">Resolvido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descrição *</label>
+                    <textarea id="editDescricao" class="form-control" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Novo Usuário -->
+    <div id="novoUsuarioModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Novo Utilizador</h3>
+                <span class="close-modal" onclick="closeModal('novoUsuarioModal')">&times;</span>
+            </div>
+            <form id="novoUsuarioForm">
+                <div class="form-group">
+                    <label class="form-label">Nome *</label>
+                    <input type="text" id="novoNome" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" id="novoEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Senha *</label>
+                    <input type="password" id="novoSenha" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <select id="novoTipo" class="form-control">
+                        <option value="atendente">Atendente</option>
+                        <option value="tecnico">Técnico</option>
+                        <option value="gerente">Gerente</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Criar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let solicitacoesData = [];
+        let statusChart = null;
+        let prioridadeChart = null;
+
+        // ==================== INICIALIZAÇÃO ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadUserData();
+            await loadDashboardData();
+        });
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/usuario');
+                if (response.ok) {
+                    currentUser = await response.json();
+                    document.getElementById('userName').innerHTML = currentUser.nome;
+                    document.getElementById('userAvatar').innerHTML = currentUser.nome.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar usuário:', error);
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+                
+                document.getElementById('totalSolicitacoes').innerText = data.total || 0;
+                document.getElementById('pendentesCount').innerText = data.pendentes || 0;
+                document.getElementById('andamentoCount').innerText = data.emAndamento || 0;
+                document.getElementById('resolvidasCount').innerText = data.resolvidas || 0;
+                
+                solicitacoesData = data.solicitacoes || [];
+                renderSolicitacoesTable(solicitacoesData);
+                
+                document.getElementById('totalRegistros').innerText = solicitacoesData.length;
+                document.getElementById('totalExibidos').innerText = solicitacoesData.length;
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                showToast('Erro ao carregar dados', 'error');
+            }
+        }
+
+        function renderSolicitacoesTable(data) {
+            const tbody = document.getElementById('solicitacoesTableBody');
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhuma solicitação encontrada</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.map(s => `
+                <tr data-status="${s.status}" data-prioridade="${s.prioridade}" data-cliente="${s.cliente_nome.toLowerCase()}">
+                    <td><strong>${s.codigo}</strong></td>
+                    <td>${s.cliente_nome}</td>
+                    <td>${s.titulo}</td>
+                    <td><span class="badge badge-${s.prioridade}">${s.prioridade}</span></td>
+                    <td><span class="badge badge-${s.status}">${s.status.replace('_', ' ')}</span></td>
+                    <td>${new Date(s.data_abertura).toLocaleDateString('pt-BR')}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-view" onclick="verDetalhes('${s._id}')"><i class="fas fa-eye"></i></button>
+                            <button class="action-btn btn-edit" onclick="openEditarSolicitacao('${s._id}')"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn btn-resolve" onclick="resolverSolicitacao('${s._id}')"><i class="fas fa-check"></i></button>
+                            <button class="action-btn btn-delete" onclick="excluirSolicitacao('${s._id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function applyFilters() {
+            const status = document.getElementById('filterStatus').value;
+            const prioridade = document.getElementById('filterPrioridade').value;
+            const cliente = document.getElementById('filterCliente').value.toLowerCase();
+            
+            const filtered = solicitacoesData.filter(s => {
+                if (status !== 'all' && s.status !== status) return false;
+                if (prioridade !== 'all' && s.prioridade !== prioridade) return false;
+                if (cliente && !s.cliente_nome.toLowerCase().includes(cliente)) return false;
+                return true;
+            });
+            
+            renderSolicitacoesTable(filtered);
+            document.getElementById('totalExibidos').innerText = filtered.length;
+        }
+
+        // ==================== NAVEGAÇÃO ====================
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`${section}-section`).classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (section === 'estatisticas') carregarGraficos();
+            if (section === 'relatorios') carregarRelatorio();
+            if (section === 'usuarios') carregarUsuarios();
+        }
+
+        // ==================== SOLICITAÇÕES ====================
+        function openNovaSolicitacaoModal() {
+            document.getElementById('novaSolicitacaoForm').reset();
+            document.getElementById('novaSolicitacaoModal').classList.add('active');
+        }
+
+        document.getElementById('novaSolicitacaoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                cliente_nome: document.getElementById('clienteNome').value,
+                cliente_email: document.getElementById('clienteEmail').value,
+                cliente_telefone: document.getElementById('clienteTelefone').value,
+                titulo: document.getElementById('titulo').value,
+                descricao: document.getElementById('descricao').value,
+                categoria: document.getElementById('categoria').value
+            };
+            
+            try {
+                const response = await fetch('/solicitacoes/nova', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Solicitação criada com sucesso!', 'success');
+                    closeModal('novaSolicitacaoModal');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.error || 'Erro ao criar solicitação', 'error');
+                }
+            } catch (error) {
+                showToast('Erro de conexão', 'error');
+            }
+        });
+
+        async function openEditarSolicitacao(id) {
+            try {
+                const response = await fetch(`/solicitacoes/${id}`);
+                const s = await response.json();
+                
+                document.getElementById('editId').value = s._id;
+                document.getElementById('editClienteNome').value = s.cliente_nome;
+                document.getElementById('editClienteEmail').value = s.cliente_email;
+                document.getElementById('editClienteTelefone').value = s.cliente_telefone || '';
+                document.getElementById('editTitulo').value = s.titulo;
+                document.getElementById('editStatus').value = s.status;
+                document.getElementById('editDescricao').value = s.descricao;
+                
+                document.getElementById('editarSolicitacaoModal').classList.add('active');
+            } catch (error) {
+                showToast('Erro ao carregar dados', 'error');
+            }
+        }
+
+        document.getElementById('editarSolicitacaoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const data = {
+                cliente_nome: document.getElementById('editClienteNome').value,
+                cliente_email: document.getElementById('editClienteEmail').value,
+                cliente_telefone: document.getElementById('editClienteTelefone').value,
+                titulo: document.getElementById('editTitulo').value,
+                status: document.getElementById('editStatus').value,
+                descricao: document.getElementById('editDescricao').value
+            };
+            
+            try {
+                const response = await fetch(`/solicitacoes/${id}/editar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Solicitação atualizada!', 'success');
+                    closeModal('editarSolicitacaoModal');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Erro ao atualizar', 'error');
+                }
+            } catch (error) {
+                showToast('Erro de conexão', 'error');
+            }
+        });
+
+        async function resolverSolicitacao(id) {
+            if (!confirm('Marcar esta solicitação como resolvida?')) return;
+            
+            try {
+                const response = await fetch(`/solicitacoes/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'resolvido' })
+                });
+                
+                if (response.ok) {
+                    showToast('Solicitação resolvida!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (error) {
+                showToast('Erro ao resolver', 'error');
+            }
+        }
+
+        async function excluirSolicitacao(id) {
+            if (!confirm('Tem certeza que deseja excluir esta solicitação?')) return;
+            
+            try {
+                const response = await fetch(`/solicitacoes/${id}/excluir`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showToast('Solicitação excluída!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (error) {
+                showToast('Erro ao excluir', 'error');
+            }
+        }
+
+        function verDetalhes(id) {
+            window.open(`/solicitacoes/${id}`, '_blank');
+        }
+
+        // ==================== GRÁFICOS ====================
+        async function carregarGraficos() {
+            try {
+                const response = await fetch('/api/estatisticas');
+                const data = await response.json();
+                
+                if (statusChart) statusChart.destroy();
+                if (prioridadeChart) prioridadeChart.destroy();
+                
+                statusChart = new Chart(document.getElementById('statusChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pendente', 'Em Andamento', 'Resolvido'],
+                        datasets: [{
+                            data: [data.pendente || 0, data.em_andamento || 0, data.resolvido || 0],
+                            backgroundColor: ['#F6B125', '#0046B8', '#28a745']
+                        }]
+                    }
+                });
+                
+                prioridadeChart = new Chart(document.getElementById('prioridadeChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Baixa', 'Média', 'Alta', 'Urgente'],
+                        datasets: [{
+                            label: 'Quantidade',
+                            data: [data.baixa || 0, data.media || 0, data.alta || 0, data.urgente || 0],
+                            backgroundColor: '#0046B8'
+                        }]
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar gráficos:', error);
+            }
+        }
+
+        // ==================== RELATÓRIOS ====================
+        async function carregarRelatorio() {
+            try {
+                const response = await fetch('/api/relatorio');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('relatorioTableBody');
+                tbody.innerHTML = data.map(r => `
+                    <tr>
+                        <td>${r.codigo}</td>
+                        <td>${r.cliente_nome}</td>
+                        <td>${r.titulo}</td>
+                        <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                        <td>${new Date(r.data_abertura).toLocaleDateString('pt-BR')}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar relatório:', error);
+            }
+        }
+
+        function exportarRelatorio() {
+            const table = document.querySelector('#relatorios-section table');
+            const html = table.outerHTML;
+            const blob = new Blob([html], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `relatorio_${new Date().toISOString().split('T')[0]}.html`;
+            link.click();
+            showToast('Relatório exportado!', 'success');
+        }
+
+        // ==================== UTILIZADORES ====================
+        async function carregarUsuarios() {
+            try {
+                const response = await fetch('/api/usuarios');
+                const usuarios = await response.json();
+                
+                const tbody = document.getElementById('usuariosTableBody');
+                tbody.innerHTML = usuarios.map(u => `
+                    <tr>
+                        <td>${u.nome}</td>
+                        <td>${u.email}</td>
+                        <td><span class="badge">${u.tipo}</span></td>
+                        <td>${u.ativo ? '✅ Ativo' : '❌ Inativo'}</td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="editarUsuario('${u._id}')"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn btn-delete" onclick="excluirUsuario('${u._id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    <tr>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+            }
+        }
+
+        function openNovoUsuarioModal() {
+            document.getElementById('novoUsuarioForm').reset();
+            document.getElementById('novoUsuarioModal').classList.add('active');
+        }
+
+        document.getElementById('novoUsuarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                nome: document.getElementById('novoNome').value,
+                email: document.getElementById('novoEmail').value,
+                senha: document.getElementById('novoSenha').value,
+                tipo: document.getElementById('novoTipo').value
+            };
+            
+            try {
+                const response = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showToast('Usuário criado!', 'success');
+                    closeModal('novoUsuarioModal');
+                    carregarUsuarios();
+                }
+            } catch (error) {
+                showToast('Erro ao criar usuário', 'error');
+            }
+        });
+
+        // ==================== UTILIDADES ====================
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
