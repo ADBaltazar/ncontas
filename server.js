@@ -32,7 +32,7 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(cors());
 
-// Configuração de sessão (compatible with Vercel)
+// Configuração de sessão para Vercel
 app.use(session({
     secret: process.env.SESSION_SECRET || 'sistema-gestao-secret-vercel',
     resave: false,
@@ -47,16 +47,18 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Configuração do MongoDB
+// Configuração do MongoDB - USA VARIÁVEL DE AMBIENTE
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
-    console.error('❌ ERRO: Variável de ambiente MONGODB_URI não configurada no Vercel!');
+    console.error('❌ ERRO: Variável de ambiente MONGODB_URI não configurada!');
 }
 
-// Conexão global com cache
+// Cache da conexão com banco para serverless
 let cachedDb = null;
+let modelsInitialized = false;
 let Solicitacao, Usuario, Atendimento;
 
+// Função para conectar ao MongoDB (com cache)
 async function connectToDatabase() {
     if (cachedDb && mongoose.connection.readyState === 1) {
         console.log('📦 Usando conexão existente');
@@ -76,8 +78,11 @@ async function connectToDatabase() {
         cachedDb = mongoose.connection;
         console.log('✅ Conectado ao MongoDB Atlas com sucesso!');
         
-        // Inicializar schemas após conexão
-        await initializeModels();
+        // Inicializar modelos apenas uma vez
+        if (!modelsInitialized) {
+            initializeModels();
+            modelsInitialized = true;
+        }
         
         return cachedDb;
     } catch (error) {
@@ -86,7 +91,8 @@ async function connectToDatabase() {
     }
 }
 
-async function initializeModels() {
+// Inicialização dos modelos Mongoose
+function initializeModels() {
     // Schema da Solicitação
     const solicitacaoSchema = new mongoose.Schema({
         codigo: { type: String, unique: true, sparse: true },
@@ -110,6 +116,7 @@ async function initializeModels() {
         tags: mongoose.Schema.Types.Mixed
     }, { collection: 'solicitacoes', timestamps: true });
 
+    // Pre-save hook para gerar código automaticamente
     solicitacaoSchema.pre('save', async function(next) {
         if (!this.codigo) {
             const ano = moment().format('YYYY');
@@ -146,23 +153,6 @@ async function initializeModels() {
     Solicitacao = mongoose.model('Solicitacao', solicitacaoSchema);
     Usuario = mongoose.model('Usuario', usuarioSchema);
     Atendimento = mongoose.model('Atendimento', atendimentoSchema);
-
-    // Criar usuário admin padrão se não existir
-    try {
-        const adminExists = await Usuario.findOne({ email: 'admin@sistema.com' });
-        if (!adminExists) {
-            const hashedPassword = bcrypt.hashSync('admin123', 10);
-            await Usuario.create({
-                nome: 'Administrador',
-                email: 'admin@sistema.com',
-                senha: hashedPassword,
-                tipo: 'admin'
-            });
-            console.log('✅ Usuário admin criado: admin@sistema.com / admin123');
-        }
-    } catch (error) {
-        console.error('Erro ao criar admin:', error);
-    }
 }
 
 // Middleware de autenticação
@@ -209,7 +199,7 @@ app.post('/login', async (req, res) => {
             return res.redirect('/dashboard');
         } else {
             if (req.xhr || req.headers['content-type'] === 'application/json') {
-                return res.json({ tipo: "Falha", error: "Credenciais inválidas" });
+                return res.status(401).json({ tipo: "Falha", error: "Credenciais inválidas" });
             }
             res.render('login', { error: 'Email ou senha inválidos' });
         }
@@ -330,7 +320,6 @@ app.post('/solicitacoes/nova', requireAuth, async (req, res) => {
             categoria: categoria || 'outro'
         });
 
-        // Adicionar ao histórico
         novaSolicitacao.historico.push({
             data: new Date(),
             autor: req.session.user?.nome || 'Sistema',
@@ -402,7 +391,6 @@ app.put('/solicitacoes/:id/status', requireAuth, async (req, res) => {
         solicitacao.status = status;
         solicitacao.data_conclusao = status === 'resolvido' ? new Date() : null;
         
-        // Adicionar ao histórico
         solicitacao.historico.push({
             data: new Date(),
             autor: req.session.user.nome,
@@ -432,7 +420,6 @@ app.post('/solicitacoes/:id/responsavel', requireAuth, async (req, res) => {
         const responsavelAnterior = solicitacao.usuario_responsavel;
         solicitacao.usuario_responsavel = responsavel;
         
-        // Adicionar ao histórico
         solicitacao.historico.push({
             data: new Date(),
             autor: req.session.user.nome,
@@ -473,7 +460,157 @@ app.post('/solicitacoes/agendamento', requireAuth, async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Erro ao agendar atendimento presencial' });
+        res.status(500).json({ error: 'Erro ao agendar atendimento' });
+    }
+});
+
+// ==================== ROTAS PARA DETALHES ====================
+app.get('/solicitacoes/:id/historico', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        const solicitacao = await Solicitacao.findById(req.params.id);
+        res.json(solicitacao.historico || []);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar histórico' });
+    }
+});
+
+app.get('/solicitacoes/:id/anexos', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        const solicitacao = await Solicitacao.findById(req.params.id);
+        res.json(solicitacao.anexos || []);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar anexos' });
+    }
+});
+
+app.post('/solicitacoes/:id/nota', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        const { nota, autor } = req.body;
+        const solicitacao = await Solicitacao.findById(req.params.id);
+        
+        if (!solicitacao) {
+            return res.status(404).json({ error: 'Solicitação não encontrada' });
+        }
+        
+        solicitacao.historico.push({
+            data: new Date(),
+            autor: autor,
+            mensagem: `Nota adicionada: ${nota}`
+        });
+        
+        await solicitacao.save();
+        
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao adicionar nota' });
+    }
+});
+
+app.post('/solicitacoes/:id/anexos', requireAuth, upload.single('anexo'), async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        const solicitacao = await Solicitacao.findById(req.params.id);
+        
+        if (!solicitacao) {
+            return res.status(404).json({ error: 'Solicitação não encontrada' });
+        }
+        
+        const anexoItem = {
+            nome: req.file.originalname,
+            caminho: `anexo_${Date.now()}_${req.file.originalname}`,
+            tipo: req.file.mimetype,
+            tamanho: req.file.size,
+            data: new Date()
+        };
+        
+        solicitacao.anexos.push(anexoItem);
+        
+        solicitacao.historico.push({
+            data: new Date(),
+            autor: req.session.user.nome,
+            mensagem: `Anexo adicionado: ${req.file.originalname}`
+        });
+        
+        await solicitacao.save();
+        
+        res.json({ success: true, anexo: anexoItem });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao adicionar anexo' });
+    }
+});
+
+app.post('/solicitacoes/:id/notificar', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        const { metodo, mensagem, email, telefone } = req.body;
+        const solicitacao = await Solicitacao.findById(req.params.id);
+        
+        console.log(`📧 NOTIFICAÇÃO VIA ${metodo.toUpperCase()}`);
+        console.log(`📱 Para: ${metodo === 'email' ? email : telefone}`);
+        console.log(`📝 Mensagem: ${mensagem}`);
+        
+        solicitacao.historico.push({
+            data: new Date(),
+            autor: req.session.user.nome,
+            mensagem: `Notificação enviada ao cliente via ${metodo}`
+        });
+        
+        await solicitacao.save();
+        
+        res.json({ success: true, message: `Notificação enviada com sucesso via ${metodo}` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao enviar notificação' });
+    }
+});
+
+app.put('/solicitacoes/:id/editar', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        const { cliente_nome, cliente_email, cliente_telefone, titulo, categoria, prioridade, status, descricao } = req.body;
+        const solicitacao = await Solicitacao.findById(req.params.id);
+        
+        if (!solicitacao) {
+            return res.status(404).json({ error: 'Solicitação não encontrada' });
+        }
+
+        solicitacao.cliente_nome = cliente_nome;
+        solicitacao.cliente_email = cliente_email;
+        solicitacao.cliente_telefone = cliente_telefone;
+        solicitacao.titulo = titulo;
+        solicitacao.categoria = categoria;
+        solicitacao.prioridade = prioridade;
+        solicitacao.status = status;
+        solicitacao.descricao = descricao;
+        
+        solicitacao.historico.push({
+            data: new Date(),
+            autor: req.session.user.nome,
+            mensagem: `Solicitação atualizada por ${req.session.user.nome}`
+        });
+        
+        await solicitacao.save();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao atualizar solicitação' });
+    }
+});
+
+app.delete('/solicitacoes/:id/excluir', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        await Solicitacao.deleteOne({ _id: req.params.id });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao excluir solicitação' });
     }
 });
 
@@ -512,6 +649,92 @@ app.get('/api/estatisticas', requireAuth, async (req, res) => {
     }
 });
 
+app.get('/api/relatorio', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        let filter = {};
+        if (req.query.inicio) filter.data_abertura = { $gte: new Date(req.query.inicio) };
+        if (req.query.fim) filter.data_abertura = { ...filter.data_abertura, $lte: new Date(req.query.fim) };
+        if (req.query.status && req.query.status !== 'all') filter.status = req.query.status;
+        
+        const solicitacoes = await Solicitacao.find(filter).sort({ data_abertura: -1 });
+        res.json(solicitacoes);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao gerar relatório' });
+    }
+});
+
+app.get('/api/usuarios', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        const usuarios = await Usuario.find().select('-senha');
+        res.json(usuarios);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao carregar usuários' });
+    }
+});
+
+app.get('/api/usuarios/:id', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        const usuario = await Usuario.findById(req.params.id).select('-senha');
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao carregar usuário' });
+    }
+});
+
+app.post('/api/usuarios', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        const { nome, email, senha, tipo } = req.body;
+        const hashedPassword = bcrypt.hashSync(senha, 10);
+        
+        const usuario = await Usuario.create({
+            nome,
+            email,
+            senha: hashedPassword,
+            tipo,
+            ativo: true
+        });
+        
+        res.json({ success: true, usuario: { ...usuario.toObject(), senha: undefined } });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao criar usuário' });
+    }
+});
+
+app.put('/api/usuarios/:id', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        const { nome, email, tipo, ativo, senha } = req.body;
+        const updateData = { nome, email, tipo, ativo };
+        
+        if (senha && senha.trim()) {
+            updateData.senha = bcrypt.hashSync(senha, 10);
+        }
+        
+        const usuario = await Usuario.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        res.json({ success: true, usuario: { ...usuario.toObject(), senha: undefined } });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao atualizar usuário' });
+    }
+});
+
+app.delete('/api/usuarios/:id', requireAuth, async (req, res) => {
+    try {
+        await connectToDatabase();
+        await Usuario.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao excluir usuário' });
+    }
+});
+
+// ==================== HEALTH CHECK ====================
 app.get('/health', async (req, res) => {
     const dbState = mongoose.connection.readyState;
     const states = {
@@ -524,42 +747,42 @@ app.get('/health', async (req, res) => {
     res.json({
         status: 'ok',
         database: states[dbState],
+        mongodb_uri_configured: !!process.env.MONGODB_URI,
         timestamp: new Date().toISOString()
     });
 });
 
-// ==================== EXPORTAÇÃO PARA VERCEL ====================
-// Esta é a parte mais importante - NÃO usar app.listen()
-// O Vercel espera uma função exportada
-
-// Middleware para garantir conexão com banco antes de cada requisição
-const withDb = (handler) => {
-    return async (req, res) => {
-        try {
-            await connectToDatabase();
-            return handler(req, res);
-        } catch (error) {
-            console.error('Erro de conexão com banco:', error);
-            res.status(500).json({ 
-                error: 'Erro de conexão com o banco de dados',
-                details: error.message 
+// ==================== CRIAÇÃO DO ADMIN ====================
+async function createAdminUser() {
+    try {
+        const adminExists = await Usuario.findOne({ email: 'admin@sistema.com' });
+        if (!adminExists) {
+            const hashedPassword = bcrypt.hashSync('admin', 10);
+            await Usuario.create({
+                nome: 'Balatzar',
+                email: 'admin@ncontas.com',
+                senha: hashedPassword,
+                tipo: 'admin',
+                ativo: true
             });
+            console.log('✅ Usuário admin criado: admin@sistema.com / admin123');
         }
-    };
-};
+    } catch (error) {
+        console.error('Erro ao criar admin:', error);
+    }
+}
 
-// Aplicar middleware de banco em todas as rotas importantes
-const originalRender = app.render.bind(app);
-app.render = function(view, options, callback) {
-    originalRender(view, options, callback);
-};
+// ==================== EXPORTAÇÃO PARA VERCEL ====================
+// NÃO usar app.listen() - o Vercel gerencia isso
 
-// Exportar para Vercel (NÃO usar app.listen)
 module.exports = async (req, res) => {
     try {
-        // Conectar ao banco se necessário
-        if (mongoose.connection.readyState !== 1) {
-            await connectToDatabase();
+        // Conectar ao banco de dados
+        await connectToDatabase();
+        
+        // Criar admin se necessário (após conexão)
+        if (modelsInitialized) {
+            await createAdminUser();
         }
         
         // Processar a requisição
@@ -567,7 +790,7 @@ module.exports = async (req, res) => {
     } catch (error) {
         console.error('Erro na função Vercel:', error);
         
-        // Tentar renderizar página de erro se for uma requisição HTML
+        // Tratar erro de forma amigável
         if (!req.xhr && req.headers.accept && req.headers.accept.includes('text/html')) {
             res.status(500).send(`
                 <!DOCTYPE html>
@@ -575,15 +798,22 @@ module.exports = async (req, res) => {
                 <head>
                     <title>Erro - Ncontas</title>
                     <style>
-                        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                        .error { color: #721c24; background: #f8d7da; padding: 20px; border-radius: 5px; }
+                        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
+                        .error-container { background: white; padding: 30px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        h1 { color: #721c24; }
+                        .error-details { color: #666; margin-top: 20px; }
+                        button { background: #0046B8; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px; }
                     </style>
                 </head>
                 <body>
-                    <div class="error">
-                        <h1>Erro interno do servidor</h1>
-                        <p>${error.message}</p>
-                        <p>Por favor, tente novamente mais tarde.</p>
+                    <div class="error-container">
+                        <h1>⚠️ Erro de Configuração</h1>
+                        <p>O sistema não conseguiu conectar ao banco de dados.</p>
+                        <div class="error-details">
+                            <p><strong>Mensagem:</strong> ${error.message}</p>
+                            <p><strong>Solução:</strong> Configure a variável de ambiente MONGODB_URI no Vercel.</p>
+                        </div>
+                        <button onclick="location.reload()">Tentar novamente</button>
                     </div>
                 </body>
                 </html>
@@ -591,7 +821,8 @@ module.exports = async (req, res) => {
         } else {
             res.status(500).json({ 
                 error: 'Erro interno do servidor',
-                message: error.message 
+                message: error.message,
+                hint: 'Verifique se a variável MONGODB_URI está configurada'
             });
         }
     }
