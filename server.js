@@ -172,7 +172,7 @@ app.get('/login', async (req, res) => {
         await connectToDatabase();
         res.render('dashboard', { error: null });
     } catch (error) {
-        res.render('login', { error: 'Erro ao conectar ao banco de dados' });
+        res.render('dashboard', { error: 'Erro ao conectar ao banco de dados' });
     }
 });
 
