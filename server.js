@@ -170,7 +170,7 @@ const requireAuth = (req, res, next) => {
 app.get('/login', async (req, res) => {
     try {
         await connectToDatabase();
-        res.render('login', { error: null });
+        res.render('dashboard', { error: null });
     } catch (error) {
         res.render('login', { error: 'Erro ao conectar ao banco de dados' });
     }
