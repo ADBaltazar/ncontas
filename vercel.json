@@ -12,127 +12,12 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/login",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/logout",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/nova",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/status",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/responsavel",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/historico",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/anexos",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/nota",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/notificar",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/editar",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/(.*)/excluir",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/solicitacoes/agendamento",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/estatisticas",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/relatorio",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/usuarios",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/usuarios/(.*)",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/health",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/css/(.*)",
-      "dest": "/public/css/$1"
-    },
-    {
-      "src": "/js/(.*)",
-      "dest": "/public/js/$1"
-    },
-    {
-      "src": "/images/(.*)",
-      "dest": "/public/images/$1"
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
     },
     {
       "src": "/(.*)",
       "dest": "/server.js"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
     }
   ]
 }
