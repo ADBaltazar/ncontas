@@ -166,6 +166,11 @@ const requireAuth = (req, res, next) => {
     }
 };
 
+app.get('/painel',(req,res)=>{
+
+    res.send("<h1> Ola mundo </h1>")
+})
+
 // ==================== ROTAS DE AUTENTICAÇÃO ====================
 app.get('/login', async (req, res) => {
     try {
