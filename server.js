@@ -787,6 +787,41 @@ async function createAdminUser() {
     }
 }
 
+
+
+// ==================== EXPORTAÇÃO PARA VERCEL ====================
+// Adicione este middleware de debug ANTES da exportação
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log('Session user:', req.session?.user?.email || 'none');
+    next();
+});
+
+module.exports = async (req, res) => {
+    try {
+        await connectToDatabase();
+        
+        if (modelsInitialized && !adminCreated) {
+            await createAdminUser();
+        }
+        
+        return app(req, res);
+    } catch (error) {
+        console.error('Erro na função Vercel:', error);
+        
+        if (!req.xhr && req.headers.accept && req.headers.accept.includes('text/html')) {
+            res.status(500).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Erro - Ncontas</title><style>body{font-family:Arial;text-align:center;padding:50px}</style></head>
+                <body><h1>⚠️ Erro no Servidor</h1><p>${error.message}</p><button onclick="location.reload()">Tentar novamente</button></body>
+                </html>
+            `);
+        } else {
+            res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
+        }
+    }
+};
 // ==================== EXPORTAÇÃO PARA VERCEL ====================
 module.exports = async (req, res) => {
     try {
