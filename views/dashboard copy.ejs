@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Gestão - Recebimento e Tratamento</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variáveis de cores */
+        :root {
+            --primary: #0046B8;
+            --secondary: #F6B125;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+
+        /* Reset e configurações básicas */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Container principal */
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Cabeçalho */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #003399 100%);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-icon i {
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-gray);
+            font-weight: bold;
+        }
+
+        /* Menu de navegação */
+        .nav-menu {
+            background-color: var(--white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            color: var(--dark-gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Conteúdo principal */
+        main {
+            flex: 1;
+            padding: 0 0 2rem 0;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-title i {
+            color: var(--secondary);
+        }
+
+        /* Cards de estatísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-info p {
+            color: var(--dark-gray);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-total .stat-icon {
+            background-color: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-pending .stat-icon {
+            background-color: rgba(246, 177, 37, 0.1);
+            color: var(--secondary);
+        }
+
+        .stat-processing .stat-icon {
+            background-color: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-resolved .stat-icon {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        /* Filtros e ações */
+        .filters-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #003399;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--dark-gray);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0a020;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .filters-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .filter-select, .filter-input {
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 70, 184, 0.2);
+        }
+
+        /* Tabela de reclamações */
+        .table-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: var(--light-gray);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(0, 70, 184, 0.03);
+        }
+
+        td {
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background-color: rgba(246, 177, 37, 0.1);
+            color: var(--secondary);
+        }
+
+        .badge-processing {
+            background-color: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-resolved {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .badge-low {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .badge-medium {
+            background-color: rgba(246, 177, 37, 0.1);
+            color: var(--secondary);
+        }
+
+        .badge-high {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background-color: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        .btn-view:hover {
+            background-color: rgba(0, 70, 184, 0.2);
+        }
+
+        .btn-edit {
+            background-color: rgba(246, 177, 37, 0.1);
+            color: var(--secondary);
+        }
+
+        .btn-edit:hover {
+            background-color: rgba(246, 177, 37, 0.2);
+        }
+
+        .btn-resolve {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .btn-resolve:hover {
+            background-color: rgba(40, 167, 69, 0.2);
+        }
+
+        /* Botão flutuante do WhatsApp */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background-color: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            z-index: 100;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: pulse 2s infinite;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.5);
+        }
+
+        .whatsapp-float i {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+            }
+        }
+
+        /* Modal de Agendamento */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            padding: 2.5rem;
+            color: var(--dark-gray);
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark-gray);
+            opacity: 0.7;
+        }
+
+        .close-modal:hover {
+            opacity: 1;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            color: var(--dark-gray);
+            opacity: 0.7;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 70, 184, 0.2);
+        }
+
+        /* Rodapé */
+        footer {
+            background-color: var(--dark-gray);
+            color: var(--white);
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .footer-section p, .footer-section a {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+            display: block;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: var(--secondary);
+        }
+
+        .developer-info {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .developer-info a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .filters-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .filters-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+
+            .whatsapp-float {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+
+            .whatsapp-float i {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div>
+                        <div class="logo-text">Ncontas</div>
+                        <div class="logo-subtitle">Central de Gestão de Solicitações</div>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar">AD</div>
+                    <div>
+                        <div><%= user.nome %></div>
+                        <div style="font-size: 0.8rem; opacity: 0.9;"><a href="/logout" style="text-decoration: none; color:#F5F5F5;">Terminar sessão</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu de Navegação -->
+    <nav class="nav-menu">
+        <div class="container nav-container">
+            <div class="nav-links">
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Painel Principal
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    Estatísticas
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Relatórios
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    Configurações
+                </a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nova Solicitação
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main>
+        <div class="container">
+            <h1 class="page-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Central de Gestão de Solicitações
+            </h1>
+
+            <!-- Estatísticas -->
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div class="stat-info">
+                        <h3><%= stats.total %></h3>
+                        <p>Total de Solicitações</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                </div>
+                <div class="stat-card stat-pending">
+                    <div class="stat-info">
+                        <h3><%= stats.pendentes %></h3>
+                        <p>Pendentes</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-card stat-processing">
+                    <div class="stat-info">
+                        <h3><%= stats.emAndamento %></h3>
+                        <p>Em Processamento</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <div class="stat-card stat-resolved">
+                    <div class="stat-info">
+                        <h3><%= stats.resolvidas %></h3>
+                        <p>Resolvidas</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros e Ações -->
+            <div class="filters-card">
+                <div class="filters-header">
+                    <h2 class="filters-title">Filtros e Ações</h2>
+                    <div class="filters-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Nova Solicitação
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button class="btn btn-success" onclick="exportToPDF()">
+                            <i class="fas fa-file-pdf"></i> Exportar PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select class="filter-select">
+                            <option value="all">Todos os Status</option>
+                            <option value="pending">Pendente</option>
+                            <option value="processing">Em Processamento</option>
+                            <option value="resolved">Resolvido</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Prioridade</label>
+                        <select class="filter-select">
+                            <option value="all">Todas as Prioridades</option>
+                            <option value="low">Baixa</option>
+                            <option value="medium">Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Categoria</label>
+                        <select class="filter-select">
+                            <option value="all">Todas as Categorias</option>
+                            <option value="billing">Faturação</option>
+                            <option value="service">Serviço</option>
+                            <option value="technical">Problema Técnico</option>
+                            <option value="other">Outro</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Data</label>
+                        <input type="date" class="filter-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Solicitações -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h2 class="table-title">Solicitações Recebidas</h2>
+                    <div class="table-actions">
+                        <span>Mostrando 10 de 42 resultados</span>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Assunto</th>
+                                <th>Categoria</th>
+                                <th>Prioridade</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Responsável</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% solicitacoesRecentes.forEach(solicitacao => { %>
+                            <tr>
+                                <td>
+                                    <a href="/solicitacoes/<%= solicitacao.id %>"><%= solicitacao.codigo %></a>
+                                </td>
+                                <td><%= solicitacao.cliente_nome %></td>
+                                <td><%= solicitacao.titulo %></td>
+                                <td>
+                                    <span class="badge badge-<%= solicitacao.tipo === 'reclamacao' ? 'high' : 'low' %>">
+                                        <%= solicitacao.tipo.charAt(0).toUpperCase() + solicitacao.tipo.slice(1) %>
+                                    </span>
+                                </td>
+                                <td><span class="badge badge-low">Baixa</span></td>
+                                <td>
+                                    <span class="badge badge-<%= solicitacao.status %>">
+                                        <%= solicitacao.status.charAt(0).toUpperCase() + solicitacao.status.slice(1) %>
+                                    </span>
+                                </td>
+                                <td>05/05/2023</td>
+                                <td><%= solicitacao.usuario_responsavel %></td>
+                                <td>
+                                    <div class="action-buttons">
+
+                                        <button class="action-btn btn-view">
+                                            <a href="/solicitacoes/<%= solicitacao.id %>" style="text-decoration: none;">Ver Detalhes</a>
+                                        </button>
+                                        <button class="action-btn btn-edit" onclick="openScheduleModal()">Agendar</button>
+                                        <button class="action-btn btn-resolve">Processar</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Botão Flutuante do WhatsApp -->
+    <a href="https://wa.me/5511999999999?text=Olá, preciso de assistência técnica presencial" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Modal de Agendamento -->
+    <div class="modal" id="schedule-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeScheduleModal()">&times;</span>
+            <h2 class="modal-title">Agendar Atendimento Presencial</h2>
+            <p class="modal-subtitle">Marque um horário para assistência técnica presencial</p>
+            
+            <form id="schedule-form" action="/solicitacoes/agendamento" method="post" >
+                <div class="form-group">
+                    <label for="client-name" class="form-label">Selecione o Cliente</label>
+                    <select name="Cliente" id="" class="form-control" >
+                        <% solicitacoesRecentes.forEach(solicitacao => { %>
+                            <option value="<%= solicitacao.codigo %>"><%= solicitacao.cliente_nome %> </option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="schedule-date" class="form-label">Data do Atendimento</label>
+                    <input type="date" name="data" id="schedule-date" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="schedule-time" class="form-label">Horário</label>
+                    <input type="time" name="Hora" id="schedule-time" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="employee" class="form-label">Funcionário Responsável</label>
+                    <select name="Responsavel" id="employee" class="form-control" required>
+                        <option value="">Selecione um funcionário</option>
+                        <option value="joao">João Silva - Técnico Sênior</option>
+                        <option value="maria">Maria Santos - Especialista Fiscal</option>
+                        <option value="carlos">Carlos Oliveira - Consultor</option>
+                        <option value="ana">Ana Costa - Atendimento</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes" class="form-label">Observações</label>
+                    <textarea id="notes" name="Observacao" class="form-control" rows="4" placeholder="Adicione observações sobre o atendimento..."></textarea>
+                </div>
+                
+                <div class="filters-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeScheduleModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar Agendamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer hidden>
+        <div class="container">
+            <div class="footer-content" hidden>
+                <div class="footer-section">
+                    <h3>Contabilidade Pro</h3>
+                    <p>Especialistas em soluções contábeis e fiscais para sua empresa.</p>
+                    <p>Oferecemos serviços personalizados para otimizar sua gestão financeira.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contato</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Rua das Empresas, 123 - Centro</p>
+                    <p><i class="fas fa-phone"></i> (11) 9999-9999</p>
+                    <p><i class="fas fa-envelope"></i> contato@contabilidadepro.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Links Rápidos</h3>
+                    <a href="#">Página Inicial</a>
+                    <a href="#">Sobre Nós</a>
+                    <a href="#">Serviços</a>
+                    <a href="#">Central de Ajuda</a>
+                </div>
+            </div>
+            <div class="developer-info">
+                <p>Sistema desenvolvido por <a href="#">DevSolutions</a> &copy; 2023 - Todos os direitos reservados</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Funções para exportação
+        function exportToExcel() {
+            alert('Exportando dados para Excel...');
+            // Em uma aplicação real, aqui seria feita a lógica para exportar para Excel
+        }
+
+        function exportToPDF() {
+            alert('Exportando dados para PDF...');
+            // Em uma aplicação real, aqui seria feita a lógica para exportar para PDF
+        }
+
+        // Funções para o modal de agendamento
+        function openScheduleModal() {
+            document.getElementById('schedule-modal').classList.add('active');
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('schedule-modal').classList.remove('active');
+        }
+
+        function handleSchedule(event) {
+            event.preventDefault();
+            
+            const clientName = document.getElementById('client-name').value;
+            const scheduleDate = document.getElementById('schedule-date').value;
+            const scheduleTime = document.getElementById('schedule-time').value;
+            const employee = document.getElementById('employee').value;
+            
+            alert(`Agendamento confirmado para ${clientName} em ${scheduleDate} às ${scheduleTime} com o funcionário selecionado.`);
+            closeScheduleModal();
+        }
+
+        // Fechar modal ao clicar fora dele
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('schedule-modal');
+            if (event.target === modal) {
+                closeScheduleModal();
+            }
+        });
+
+        // Simulação de interações básicas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Adicionar eventos aos botões de ação
+            const actionButtons = document.querySelectorAll('.action-btn');
+            actionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.textContent;
+                    const row = this.closest('tr');
+                    const id = row.cells[0].textContent;
+                    
+                    if (action === 'Ver') {
+                        alert(`Visualizando detalhes da solicitação ${id}`);
+                    } else if (action === 'Delegar') {
+                        alert(`Delegando solicitação ${id} para outro funcionário`);
+                    }
+                });
+            });
+
+            // Simular atualização de estatísticas em tempo real
+            setInterval(() => {
+                const totalElement = document.querySelector('.stat-total h3');
+                const pendingElement = document.querySelector('.stat-pending h3');
+                
+                // Adicionar animação de mudança
+                totalElement.style.transform = 'scale(1.1)';
+                pendingElement.style.transform = 'scale(1.1)';
+                
+                setTimeout(() => {
+                    totalElement.style.transform = 'scale(1)';
+                    pendingElement.style.transform = 'scale(1)';
+                }, 300);
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

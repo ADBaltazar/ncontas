@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Suporte Pro | Atendimento Humanizado e Tecnologia</title>
+    <!-- Google Fonts + Font Awesome + Tailwind CSS CDN (utility-first + custom) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AOS Library para animações suaves -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- SweetAlert2 para feedback elegante -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* custom overrides e variáveis do design system (azul royal, dourado) */
+        :root {
+            --ds-blue: #0046B8;
+            --ds-blue-dark: #003399;
+            --ds-gold: #F6B125;
+            --ds-navy-deep: #1A1A2E;
+            --ds-white: #FFFFFF;
+            --ds-gray-bg: #F5F8FF;
+            --ds-gradient-start: #0046B8;
+            --ds-gradient-end: #003399;
+        }
+        * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background-color: var(--ds-gray-bg);
+            overflow-x: hidden;
+        }
+        /* Efeito mesh / geometria sutil inspirada nos prompts */
+        .hero-mesh-bg {
+            background-image: radial-gradient(circle at 25% 40%, rgba(246,177,37,0.08) 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+        }
+        .glass-card {
+            backdrop-filter: blur(12px);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, var(--ds-gold) 0%, #e09d1a 100%);
+        }
+        .custom-shape-float {
+            animation: floatSoft 12s infinite ease-in-out;
+        }
+        @keyframes floatSoft {
+            0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+            50% { transform: translateY(-18px) translateX(6px) rotate(3deg); }
+            100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.3s; }
+        .delay-300 { animation-delay: 0.6s; }
+        /* scroll suave */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* input focus custom */
+        .input-focus-ring:focus {
+            outline: none;
+            border-color: var(--ds-blue);
+            box-shadow: 0 0 0 3px rgba(0,70,184,0.2);
+        }
+        .btn-gold-hover {
+            transition: all 0.25s ease;
+        }
+        .btn-gold-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 30px -12px rgba(246,177,37,0.4);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Layout principal com grid assimetrico 1.2fr / 0.8fr -->
+    <div class="min-h-screen lg:grid lg:grid-cols-[1.2fr,0.8fr] flex flex-col">
+        
+        <!-- PAINEL ESQUERDO: hero principal + conteúdo humano e mesh (imagem conceitual baseada em Hero Prompt) -->
+        <div class="relative bg-gradient-to-br from-[#0046B8] via-[#003399] to-[#002266] text-white overflow-hidden hero-mesh-bg">
+            <!-- elementos flutuantes inspirados no prompt abstrato -->
+            <div class="absolute inset-0 pointer-events-none">
+                <div class="absolute top-[12%] left-[5%] w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
+                <div class="absolute bottom-[5%] right-[2%] w-80 h-80 rounded-full bg-gold/10 blur-3xl" style="background-color: rgba(246,177,37,0.08);"></div>
+                <!-- grid hexagonal decorativo (hexágonos SVG) -->
+                <svg class="absolute bottom-0 right-0 w-5/6 opacity-10" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M200,100 L250,70 L300,100 L300,160 L250,190 L200,160 Z" stroke="#F6B125" stroke-width="1.2" fill="none"/>
+                    <path d="M300,100 L350,70 L400,100 L400,160 L350,190 L300,160 Z" stroke="#F6B125" stroke-width="1.2" fill="none"/>
+                    <path d="M100,180 L150,150 L200,180 L200,240 L150,270 L100,240 Z" stroke="#F6B125" stroke-width="1.2" fill="none"/>
+                    <path d="M400,180 L450,150 L500,180 L500,240 L450,270 L400,240 Z" stroke="#F6B125" stroke-width="1.2" fill="none"/>
+                    <path d="M250,250 L300,220 L350,250 L350,310 L300,340 L250,310 Z" stroke="#F6B125" stroke-width="1.2" fill="none"/>
+                </svg>
+            </div>
+            
+            <div class="relative z-10 flex flex-col justify-between min-h-screen lg:min-h-full p-6 md:p-10 lg:p-12">
+                <!-- Logo e identidade -->
+                <div data-aos="fade-up" data-aos-duration="700" class="flex items-center gap-3 mb-12 lg:mb-16">
+                    <div class="bg-white/15 backdrop-blur-md rounded-2xl w-14 h-14 flex items-center justify-center border border-white/25 shadow-lg">
+                        <i class="fas fa-headset text-2xl text-[#F6B125]"></i>
+                    </div>
+                    <span class="text-2xl font-bold tracking-tight">Suporte<span class="text-[#F6B125]">Pro</span></span>
+                    <span class="ml-3 text-xs bg-white/20 px-3 py-1 rounded-full">Atendimento Angola</span>
+                </div>
+                
+                <div class="max-w-xl">
+                    <h1 data-aos="fade-up" data-aos-delay="100" class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+                        Sua Voz é <span class="text-[#F6B125] relative inline-block">Importante
+                            <svg class="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 200 6" xmlns="http://www.w3.org/2000/svg"><path d="M0 3 L200 3" stroke="#F6B125" stroke-width="4" stroke-dasharray="6 4"/></svg>
+                        </span>
+                    </h1>
+                    <p data-aos="fade-up" data-aos-delay="200" class="text-lg md:text-xl mt-6 text-white/80 leading-relaxed">
+                        Conectamos você com soluções reais. Nossa equipe multicultural e especializada transforma cada interação em uma experiência de confiança e eficiência.
+                    </p>
+                    
+                    <!-- features grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-10">
+                        <div data-aos="fade-up" data-aos-delay="250" class="flex gap-3 items-start">
+                            <div class="bg-white/15 rounded-xl p-2 backdrop-blur-sm"><i class="fas fa-bolt text-[#F6B125] text-lg"></i></div>
+                            <div><h3 class="font-bold">Resposta Rápida</h3><p class="text-sm text-white/70">Atendimento ágil em menos de 24h</p></div>
+                        </div>
+                        <div data-aos="fade-up" data-aos-delay="300" class="flex gap-3 items-start">
+                            <div class="bg-white/15 rounded-xl p-2 backdrop-blur-sm"><i class="fas fa-shield-alt text-[#F6B125] text-lg"></i></div>
+                            <div><h3 class="font-bold">Privacidade Garantida</h3><p class="text-sm text-white/70">Seus dados protegidos com padrão LGPD</p></div>
+                        </div>
+                        <div data-aos="fade-up" data-aos-delay="350" class="flex gap-3 items-start">
+                            <div class="bg-white/15 rounded-xl p-2 backdrop-blur-sm"><i class="fas fa-chart-line text-[#F6B125] text-lg"></i></div>
+                            <div><h3 class="font-bold">Soluções Eficazes</h3><p class="text-sm text-white/70">Melhorias contínuas e resultados reais</p></div>
+                        </div>
+                        <div data-aos="fade-up" data-aos-delay="400" class="flex gap-3 items-start">
+                            <div class="bg-white/15 rounded-xl p-2 backdrop-blur-sm"><i class="fas fa-users text-[#F6B125] text-lg"></i></div>
+                            <div><h3 class="font-bold">Equipa Multicultural</h3><p class="text-sm text-white/70">Dedicação e empatia em cada atendimento</p></div>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA botão que abre modal -->
+                    <div data-aos="fade-up" data-aos-delay="450" class="mt-10">
+                        <button onclick="openLoginModal()" class="gold-gradient text-gray-900 font-bold px-7 py-3.5 rounded-xl shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 group">
+                            <span>Minha conta</span>
+                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- espaço inferior decorativo -->
+                <div class="mt-16 text-white/40 text-sm flex gap-6">
+                    <span><i class="far fa-clock mr-1"></i>Suporte 24/7</span>
+                    <span><i class="fas fa-globe mr-1"></i>Equipa Angola & Global</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PAINEL DIREITO: Formulário de reclamação/sugestão + card premium -->
+        <div class="bg-white lg:rounded-l-3xl shadow-2xl flex items-center justify-center p-6 md:p-10 relative z-20">
+            <div class="w-full max-w-xl mx-auto" data-aos="fade-left" data-aos-duration="800">
+                <div class="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-xl">
+                    <!-- cabeçalho -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-1 h-8 bg-[#0046B8] rounded-full"></div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Envie sua Reclamação <br> ou Sugestão</h2>
+                    </div>
+                    <p class="text-gray-500 mb-6 text-sm">Sua opinião molda o futuro do nosso atendimento. Preencha os dados e descreva sua experiência.</p>
+                    
+                    <!-- Formulário com feedback dinâmico -->
+                    <form id="supportForm" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Nome completo <span class="text-red-500">*</span></label>
+                            <input type="text" id="fullName" name="cliente_nome" required class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0046B8] transition outline-none input-focus-ring">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">E-mail <span class="text-red-500">*</span></label>
+                            <input type="email" id="emailAddr" name="cliente_email" required class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0046B8] transition outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Assunto <span class="text-red-500">*</span></label>
+                            <input type="text" id="subject" name="titulo" required class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0046B8] transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Categoria <span class="text-red-500">*</span></label>
+                            <select id="category" required class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:border-[#0046B8]">
+                                <option value="">Selecione uma categoria</option>
+                                <option value="faturacao">Problemas com Faturação</option>
+                                <option value="servico">Mau Atendimento</option>
+                                <option value="tecnico">Problemas Técnicos</option>
+                                <option value="sugestao">Sugestão / Melhoria</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Descrição detalhada <span class="text-red-500">*</span></label>
+                            <textarea id="description" rows="4" required placeholder="Descreva o problema ou sugestão com máximo de detalhes..." class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:border-[#0046B8] resize-none"></textarea>
+                        </div>
+                        <button type="submit" id="sendTicketBtn" class="w-full bg-[#0046B8] hover:bg-[#003399] text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Enviar Mensagem
+                        </button>
+                    </form>
+                    
+                    <!-- Divisor e integração com redes / login social -->
+                    <div class="relative my-8">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                        <div class="relative flex justify-center text-xs"><span class="bg-white px-3 text-gray-400">ou acesse com</span></div>
+                    </div>
+                    
+                    <button onclick="simulateGoogleLogin()" class="w-full flex items-center justify-center gap-3 border border-gray-300 bg-white hover:bg-gray-50 py-3 rounded-xl font-medium text-gray-700 transition shadow-sm">
+                        <i class="fab fa-google text-[#4285F4] text-lg"></i> Continuar com Google
+                    </button>
+                    
+                    <p class="text-center text-sm text-gray-500 mt-6">
+                        Já tem uma conta? <button onclick="openLoginModal()" class="text-[#0046B8] font-semibold hover:underline">Faça login</button>
+                    </p>
+                </div>
+                <!-- selo de confiança / referencia equipe angolana -->
+                <div class="mt-6 text-center text-gray-400 text-xs flex justify-center gap-3">
+                    <span><i class="fas fa-check-circle text-[#F6B125]"></i> Atendimento humano</span>
+                    <span><i class="fas fa-headset text-[#F6B125]"></i> Equipa Angola</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL LOGIN / REGISTRO (design premium) -->
+    <div id="authModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300 opacity-0 invisible">
+        <div class="bg-white rounded-2xl max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-95 p-6 md:p-8 relative">
+            <button onclick="closeAuthModal()" class="absolute right-5 top-5 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            <div class="text-center mb-5">
+                <div class="w-16 h-16 bg-[#0046B8]/10 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-headset text-2xl text-[#0046B8]"></i></div>
+                <h3 class="text-2xl font-bold text-gray-800">Bem-vindo de volta</h3>
+                <p class="text-gray-500 text-sm">Acesse seu painel de solicitações</p>
+            </div>
+            <form id="loginModalForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">E-mail</label>
+                    <input type="email" id="modalEmail" class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:border-[#0046B8] outline-none" placeholder="seu@email.com" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" id="modalPassword" class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:border-[#0046B8]" placeholder="••••••" required>
+                </div>
+                <div class="flex justify-between items-center text-sm mb-6">
+                    <label class="flex items-center gap-1"><input type="checkbox" class="rounded"> <span class="text-gray-600">Lembrar-me</span></label>
+                    <button type="button" class="text-[#0046B8] hover:underline">Esqueceu a senha?</button>
+                </div>
+                <button type="submit" class="w-full bg-[#0046B8] hover:bg-[#003399] text-white py-3 rounded-xl font-semibold transition">Entrar</button>
+            </form>
+            <div class="mt-6 text-center text-sm text-gray-500">
+                Não tem conta? <button onclick="simulateRegister()" class="text-[#0046B8] font-semibold">Cadastre-se gratuitamente</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Inicializa AOS animações
+        AOS.init({ duration: 800, once: true, offset: 20 });
+        
+        // elementos do formulário principal
+        const supportForm = document.getElementById('supportForm');
+        const sendBtn = document.getElementById('sendTicketBtn');
+        
+        // Função simulada de envio com delay e validação
+        async function submitSupportTicket(data) {
+            // Simula envio para backend com latência de rede
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Simulação de sucesso sempre (validação front já checa campos)
+                    console.log("Dados enviados (simulação):", data);
+                    resolve({ success: true, message: "Solicitação recebida! Nossa equipe entrará em contato em até 24h." });
+                }, 1000);
+            });
+        }
+        
+        supportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Captura valores
+            const nome = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('emailAddr').value.trim();
+            const assunto = document.getElementById('subject').value.trim();
+            const categoria = document.getElementById('category').value;
+            const descricao = document.getElementById('description').value.trim();
+            
+            if(!nome || !email || !assunto || !categoria || !descricao) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos pendentes',
+                    text: 'Por favor, preencha todos os campos obrigatórios.',
+                    confirmButtonColor: '#0046B8'
+                });
+                return;
+            }
+            if(!email.includes('@') || !email.includes('.')) {
+                Swal.fire({ icon: 'error', title: 'E-mail inválido', text: 'Insira um endereço de e-mail válido.', confirmButtonColor: '#0046B8' });
+                return;
+            }
+            
+            // Desabilitar botão enquanto envia
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            
+            const payload = {
+                cliente_nome: nome,
+                cliente_email: email,
+                titulo: assunto,
+                categoria: categoria,
+                descricao: descricao,
+                data_criacao: new Date().toISOString()
+            };
+            
+            try {
+                const response = await submitSupportTicket(payload);
+                if(response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Mensagem enviada!',
+                        text: response.message,
+                        confirmButtonColor: '#F6B125',
+                        background: '#fff'
+                    });
+                    supportForm.reset();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha temporária. Tente novamente.', confirmButtonColor: '#0046B8' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Erro de conexão', text: 'Verifique sua internet e tente mais tarde.', confirmButtonColor: '#0046B8' });
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Mensagem';
+            }
+        });
+        
+        // Modal lógica
+        const modal = document.getElementById('authModal');
+        function openLoginModal() {
+            modal.classList.remove('opacity-0', 'invisible');
+            modal.classList.add('opacity-100', 'visible');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAuthModal() {
+            modal.classList.add('opacity-0', 'invisible');
+            modal.classList.remove('opacity-100', 'visible');
+            document.body.style.overflow = '';
+        }
+        window.openLoginModal = openLoginModal;
+        window.closeAuthModal = closeAuthModal;
+        
+        // login form modal
+        const loginModalForm = document.getElementById('loginModalForm');
+        loginModalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loginEmail = document.getElementById('modalEmail').value;
+            const loginPass = document.getElementById('modalPassword').value;
+            if(!loginEmail || !loginPass) {
+                Swal.fire({ icon: 'warning', title: 'Campos vazios', text: 'Informe e-mail e senha para acessar.' });
+                return;
+            }
+            // Simulação de autenticação
+            Swal.fire({
+                title: 'Acessando sua conta...',
+                text: 'Redirecionamento para o painel do cliente (demo).',
+                icon: 'info',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                Swal.fire({ icon: 'success', title: 'Login simulado', text: `Bem-vindo(a), ${loginEmail}. Em ambiente real, você acessaria o dashboard.`, confirmButtonColor: '#0046B8' });
+                closeAuthModal();
+            });
+        });
+        
+        window.simulateGoogleLogin = () => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Autenticação Google',
+                text: 'Integração com Google OAuth (demo). Acesso concedido com sucesso!',
+                confirmButtonColor: '#0046B8'
+            });
+            closeAuthModal();
+        };
+        
+        window.simulateRegister = () => {
+            Swal.fire({
+                title: 'Criar nova conta',
+                html: `<input id="regName" class="swal2-input" placeholder="Nome completo">
+                       <input id="regEmail" class="swal2-input" placeholder="E-mail">
+                       <input id="regPass" type="password" class="swal2-input" placeholder="Senha">`,
+                preConfirm: () => {
+                    const name = document.getElementById('regName').value;
+                    const email = document.getElementById('regEmail').value;
+                    const pass = document.getElementById('regPass').value;
+                    if(!name || !email || !pass) {
+                        Swal.showValidationMessage('Preencha todos os campos');
+                        return false;
+                    }
+                    return { name, email };
+                },
+                confirmButtonColor: '#F6B125',
+                confirmButtonText: 'Cadastrar'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    Swal.fire('Conta criada!', `Bem-vindo(a) ${result.value.name}. Agora você pode acompanhar suas solicitações.`, 'success');
+                    closeAuthModal();
+                }
+            });
+        };
+        
+        // Fechar modal com clique externo
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) closeAuthModal();
+        });
+        
+        // Hero mini interação extra para demonstrar design system: tooltip visual com inspiração "equipa angolana"
+        const logoDiv = document.querySelector('.bg-white\\/15.backdrop-blur-md');
+        if(logoDiv) {
+            logoDiv.addEventListener('mouseenter', () => {
+                // apenas efeito sutil
+            });
+        }
+        
+        // pré-carregar estilo console amigável
+        console.log("Suporte Pro — Design System ativo | Tema Azul Royal #0046B8 + Dourado #F6B125 | Equipa Angola");
+    </script>
+    <!-- Adiciona fallback responsivo e melhoria de scroll -->
+    <style>
+        @media (max-width: 1024px) {
+            .lg\:rounded-l-3xl {
+                border-radius: 1.5rem 1.5rem 0 0;
+            }
+        }
+        .swal2-popup {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</body>
+</html>

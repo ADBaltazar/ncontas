@@ -1,0 +1,120 @@
+<% const title = 'Solicitações' %>
+<% const currentPage = 'solicitacoes' %>
+<%- include('layout', { title, currentPage, body: `
+
+<h1 class="page-title">
+    <i class="fas fa-list"></i>
+    Todas as Solicitações
+</h1>
+
+<div class="filters-card">
+    <div class="filters-header">
+        <h2 class="filters-title">Filtros</h2>
+        <div class="filters-actions">
+            <a href="/solicitacoes/nova" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nova Solicitação
+            </a>
+        </div>
+    </div>
+    <form method="GET" class="filters-content">
+        <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="todos" <%= !filters.status || filters.status === 'todos' ? 'selected' : '' %>>Todos</option>
+                <option value="pendente" <%= filters.status === 'pendente' ? 'selected' : '' %>>Pendente</option>
+                <option value="em_andamento" <%= filters.status === 'em_andamento' ? 'selected' : '' %>>Em Andamento</option>
+                <option value="resolvido" <%= filters.status === 'resolvido' ? 'selected' : '' %>>Resolvido</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Tipo</label>
+            <select name="tipo" class="filter-select" onchange="this.form.submit()">
+                <option value="todos" <%= !filters.tipo || filters.tipo === 'todos' ? 'selected' : '' %>>Todos</option>
+                <option value="reclamacao" <%= filters.tipo === 'reclamacao' ? 'selected' : '' %>>Reclamação</option>
+                <option value="sugestao" <%= filters.tipo === 'sugestao' ? 'selected' : '' %>>Sugestão</option>
+                <option value="elogio" <%= filters.tipo === 'elogio' ? 'selected' : '' %>>Elogio</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Prioridade</label>
+            <select name="prioridade" class="filter-select" onchange="this.form.submit()">
+                <option value="todos" <%= !filters.prioridade || filters.prioridade === 'todos' ? 'selected' : '' %>>Todas</option>
+                <option value="baixa" <%= filters.prioridade === 'baixa' ? 'selected' : '' %>>Baixa</option>
+                <option value="media" <%= filters.prioridade === 'media' ? 'selected' : '' %>>Média</option>
+                <option value="alta" <%= filters.prioridade === 'alta' ? 'selected' : '' %>>Alta</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <h2 class="table-title">Solicitações (<%= totalCount %>)</h2>
+        <div class="table-actions">
+            <span>Página <%= currentPage %> de <%= totalPages %></span>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Assunto</th>
+                    <th>Tipo</th>
+                    <th>Prioridade</th>
+                    <th>Status</th>
+                    <th>Responsável</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% solicitacoes.forEach(solicitacao => { %>
+                <tr>
+                    <td class="font-medium">
+                        <a href="/solicitacoes/<%= solicitacao.id %>"><%= solicitacao.codigo %></a>
+                    </td>
+                    <td><%= solicitacao.cliente_nome %></td>
+                    <td class="truncate max-w-xs"><%= solicitacao.titulo %></td>
+                    <td>
+                        <span class="badge badge-<%= solicitacao.tipo === 'reclamacao' ? 'high' : 'low' %>">
+                            <%= solicitacao.tipo.charAt(0).toUpperCase() + solicitacao.tipo.slice(1) %>
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-<%= solicitacao.prioridade %>">
+                            <%= solicitacao.prioridade.charAt(0).toUpperCase() + solicitacao.prioridade.slice(1) %>
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-<%= solicitacao.status %>">
+                            <%= solicitacao.status.charAt(0).toUpperCase() + solicitacao.status.slice(1) %>
+                        </span>
+                    </td>
+                    <td><%= solicitacao.usuario_responsavel || 'Não atribuído' %></td>
+                    <td><%= moment(solicitacao.createdAt).format('DD/MM/YYYY') %></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/solicitacoes/<%= solicitacao.id %>" class="action-btn btn-view">Ver</a>
+                        </div>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+    
+    <% if (totalPages > 1) { %>
+    <div class="pagination">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/solicitacoes?page=<%= i %>&status=<%= filters.status || '' %>&tipo=<%= filters.tipo || '' %>&prioridade=<%= filters.prioridade || '' %>" 
+               class="page-link <%= i === currentPage ? 'active' : '' %>">
+                <%= i %>
+            </a>
+        <% } %>
+    </div>
+    <% } %>
+</div>
+
+` }) %>

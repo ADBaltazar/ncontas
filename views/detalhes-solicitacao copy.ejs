@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Solicitação - Sistema de Gestão</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variáveis de cores */
+        :root {
+            --primary: #0046B8;
+            --secondary: #F6B125;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+
+        /* Reset e configurações básicas */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Container principal */
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Cabeçalho */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #003399 100%);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-icon i {
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-gray);
+            font-weight: bold;
+        }
+
+        /* Conteúdo principal */
+        main {
+            padding: 0 0 2rem 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 25px 0;
+        }
+
+        .page-title i {
+            color: var(--secondary);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--white);
+            color: var(--dark-gray);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn:hover {
+            background: var(--light-gray);
+            transform: translateY(-2px);
+        }
+
+        /* Layout de detalhes */
+        .details-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Informações principais */
+        .main-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .info-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-pendente, .badge-pending {
+            background-color: rgba(246, 177, 37, 0.1);
+            color: var(--secondary);
+        }
+
+        .badge-em_analise, .badge-em-andamento {
+            background-color: rgba(0, 70, 184, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-resolvido {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .badge-cancelado {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-baixa {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .badge-media {
+            background-color: rgba(246, 177, 37, 0.1);
+            color: var(--secondary);
+        }
+
+        .badge-alta, .badge-urgente {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        /* Informações em grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        /* Descrição */
+        .description-box {
+            background-color: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .description-text {
+            white-space: pre-line;
+            line-height: 1.6;
+        }
+
+        /* Barra lateral - Ações */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .action-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-group {
+            margin-bottom: 1rem;
+        }
+
+        .action-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .action-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+        }
+
+        /* Botões */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #003399;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--dark-gray);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0a020;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background-color: var(--info);
+            color: var(--white);
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Formulários */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 70, 184, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Histórico */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--light-gray);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.3rem;
+            top: 0.3rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--white);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+        }
+
+        .timeline-content {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+        }
+
+        .timeline-author {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Anexos */
+        .attachments-list {
+            margin-top: 1rem;
+        }
+
+        .attachment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .attachment-item a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .attachment-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast/Notificação */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--dark-gray);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .toast-success {
+            background-color: var(--success);
+        }
+
+        .toast-error {
+            background-color: var(--danger);
+        }
+
+        .toast-info {
+            background-color: var(--info);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* Botão WhatsApp */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background-color: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            z-index: 100;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.5);
+        }
+
+        .whatsapp-float i {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .details-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .whatsapp-float {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+
+            .whatsapp-float i {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="logo-text">Contabilidade Pro</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar"><%= user.nome.charAt(0).toUpperCase() %></div>
+                    <div>
+                        <div><%= user.nome %></div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Online</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main>
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-ticket-alt"></i>
+                    Detalhes da Solicitação - Código: <%= solicitacao.codigo %>
+                </h1>
+                <a href="/dashboard" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Voltar para Lista
+                </a>
+            </div>
+
+            <div class="details-layout">
+                <!-- Coluna Principal -->
+                <div class="main-info">
+                    <!-- Informações do Cliente -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-user"></i>
+                                Informações do Cliente
+                            </h2>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Nome</span>
+                                <span class="info-value"><%= solicitacao.cliente_nome %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email</span>
+                                <span class="info-value"><%= solicitacao.cliente_email %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Telefone</span>
+                                <span class="info-value"><%= solicitacao.cliente_telefone || 'Não informado' %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Data Abertura</span>
+                                <span class="info-value"><%= new Date(solicitacao.data_abertura).toLocaleString('pt-BR') %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detalhes da Solicitação -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-info-circle"></i>
+                                Detalhes da Solicitação
+                            </h2>
+                            <div>
+                                <span class="badge badge-<%= solicitacao.prioridade %>">
+                                    Prioridade: <%= solicitacao.prioridade.toUpperCase() %>
+                                </span>
+                                <span class="badge badge-<%= solicitacao.status %>">
+                                    Status: <%= solicitacao.status.replace('_', ' ').toUpperCase() %>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Tipo</span>
+                                <span class="info-value"><%= solicitacao.tipo.toUpperCase() %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Categoria</span>
+                                <span class="info-value"><%= solicitacao.categoria.toUpperCase() %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Responsável</span>
+                                <span class="info-value"><%= solicitacao.usuario_responsavel || 'Não atribuído' %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Última Atualização</span>
+                                <span class="info-value"><%= new Date(solicitacao.updatedAt).toLocaleString('pt-BR') %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-file-alt"></i>
+                                Descrição da Solicitação
+                            </h2>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Assunto</label>
+                            <div class="description-box">
+                                <p class="description-text"><%= solicitacao.titulo %></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Descrição Detalhada</label>
+                            <div class="description-box">
+                                <p class="description-text"><%= solicitacao.descricao %></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Histórico de Atualizações -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-history"></i>
+                                Histórico de Atualizações
+                            </h2>
+                        </div>
+                        <div class="timeline" id="timeline-container">
+                            <!-- Histórico será carregado via JavaScript -->
+                            <div style="text-align: center; padding: 2rem;">Carregando histórico...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra Lateral - Ações -->
+                <div class="sidebar">
+                    <!-- Ações Rápidas -->
+                    <div class="action-card">
+                        <h3 class="action-title">Ações Rápidas</h3>
+                        <div class="action-group">
+                            <button class="btn btn-success btn-block" onclick="updateStatus('resolvido')">
+                                <i class="fas fa-check"></i> Marcar como Resolvida
+                            </button>
+                        </div>
+                        <div class="action-group">
+                            <button class="btn btn-danger btn-block" onclick="updateStatus('cancelado')">
+                                <i class="fas fa-times"></i> Cancelar Solicitação
+                            </button>
+                        </div>
+                        <div class="action-group">
+                            <button class="btn btn-info btn-block" onclick="openNotificationModal()">
+                                <i class="fas fa-bell"></i> Notificar Cliente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alterar Status -->
+                    <div class="action-card">
+                        <form id="statusForm" onsubmit="updateStatusWithForm(event)">
+                            <h3 class="action-title">Alterar Status</h3>
+                            <div class="form-group">
+                                <select id="status" name="status" class="form-control">
+                                    <option value="pendente" <%= solicitacao.status === 'pendente' ? 'selected' : '' %>>Pendente</option>
+                                    <option value="em_analise" <%= solicitacao.status === 'em_analise' ? 'selected' : '' %>>Em Análise</option>
+                                    <option value="em_andamento" <%= solicitacao.status === 'em_andamento' ? 'selected' : '' %>>Em Andamento</option>
+                                    <option value="resolvido" <%= solicitacao.status === 'resolvido' ? 'selected' : '' %>>Resolvido</option>
+                                    <option value="cancelado" <%= solicitacao.status === 'cancelado' ? 'selected' : '' %>>Cancelado</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-sync"></i> Atualizar Status
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Atribuir Responsável -->
+                    <div class="action-card">
+                        <form id="responsavelForm" onsubmit="updateResponsavel(event)">
+                            <h3 class="action-title">Atribuir Responsável</h3>
+                            <div class="form-group">
+                                <select id="responsavel" name="responsavel" class="form-control">
+                                    <option value="">Selecione um responsável</option>
+                                    <option value="João Silva" <%= solicitacao.usuario_responsavel === 'João Silva' ? 'selected' : '' %>>João Silva</option>
+                                    <option value="Maria Santos" <%= solicitacao.usuario_responsavel === 'Maria Santos' ? 'selected' : '' %>>Maria Santos</option>
+                                    <option value="Pedro Costa" <%= solicitacao.usuario_responsavel === 'Pedro Costa' ? 'selected' : '' %>>Pedro Costa</option>
+                                    <option value="Ana Oliveira" <%= solicitacao.usuario_responsavel === 'Ana Oliveira' ? 'selected' : '' %>>Ana Oliveira</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-user-check"></i> Atribuir
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Adicionar Nota -->
+                    <div class="action-card">
+                        <form id="notaForm" onsubmit="addNota(event)">
+                            <h3 class="action-title">Adicionar Nota/Observação</h3>
+                            <div class="form-group">
+                                <textarea id="nota" name="nota" class="form-control" placeholder="Digite uma nota ou atualização..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-plus"></i> Adicionar Nota
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Anexos -->
+                    <div class="action-card">
+                        <h3 class="action-title">Anexos</h3>
+                        <form id="anexoForm" onsubmit="uploadAnexo(event)">
+                            <div class="form-group">
+                                <input type="file" id="anexo" name="anexo" class="form-control" accept=".pdf,.jpg,.png,.doc,.docx">
+                            </div>
+                            <button type="submit" class="btn btn-secondary btn-block">
+                                <i class="fas fa-upload"></i> Enviar Anexo
+                            </button>
+                        </form>
+                        <div class="attachments-list" id="attachments-list">
+                            <!-- Lista de anexos será carregada via JavaScript -->
+                            <div style="text-align: center; padding: 1rem;">Nenhum anexo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Notificação -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Notificar Cliente</h3>
+                <span class="close-modal" onclick="closeModal('notificationModal')">&times;</span>
+            </div>
+            <form id="notificationForm" onsubmit="sendNotification(event)">
+                <div class="form-group">
+                    <label class="form-label">Método de Notificação</label>
+                    <select id="notificacaoMetodo" class="form-control" required>
+                        <option value="email">Email</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="ambos">Ambos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mensagem</label>
+                    <textarea id="mensagem" class="form-control" rows="4" required>Prezado(a) cliente,
+
+Sua solicitação #<%= solicitacao.codigo %> foi atualizada. Status atual: <%= solicitacao.status.replace('_', ' ').toUpperCase() %>
+
+Acesse o sistema para mais detalhes.
+
+Atenciosamente,
+Equipe de Suporte</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-paper-plane"></i> Enviar Notificação
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Botão Flutuante WhatsApp -->
+    <a href="https://wa.me/<%= solicitacao.cliente_telefone || '933493239' %>?text=Olá, sua solicitação #<%= solicitacao.codigo %> foi atualizada para: <%= solicitacao.status.replace('_', ' ').toUpperCase() %>" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+        const solicitacaoId = '<%= solicitacao._id %>';
+        const clienteEmail = '<%= solicitacao.cliente_email %>';
+        const clienteTelefone = '<%= solicitacao.cliente_telefone %>';
+        const solicitacaoCodigo = '<%= solicitacao.codigo %>';
+
+        // Função para mostrar toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Função para carregar histórico
+        async function loadHistorico() {
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/historico`);
+                const historico = await response.json();
+                
+                const timelineContainer = document.getElementById('timeline-container');
+                if (historico.length === 0) {
+                    timelineContainer.innerHTML = '<div style="text-align: center; padding: 2rem;">Nenhuma atualização registrada</div>';
+                    return;
+                }
+                
+                timelineContainer.innerHTML = historico.map(item => `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${new Date(item.data).toLocaleString('pt-BR')}</div>
+                        <div class="timeline-content">
+                            <span class="timeline-author">${item.autor}:</span> ${item.mensagem}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+
+        // Função para carregar anexos
+        async function loadAnexos() {
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/anexos`);
+                const anexos = await response.json();
+                
+                const attachmentsList = document.getElementById('attachments-list');
+                if (!anexos || anexos.length === 0) {
+                    attachmentsList.innerHTML = '<div style="text-align: center; padding: 1rem;">Nenhum anexo</div>';
+                    return;
+                }
+                
+                attachmentsList.innerHTML = anexos.map(anexo => `
+                    <div class="attachment-item">
+                        <a href="/uploads/${anexo.nome}" target="_blank">
+                            <i class="fas ${getFileIcon(anexo.tipo)}"></i> ${anexo.nome}
+                        </a>
+                        <span style="font-size: 0.8rem;">${formatFileSize(anexo.tamanho)}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar anexos:', error);
+            }
+        }
+
+        // Função auxiliar para ícone do arquivo
+        function getFileIcon(tipo) {
+            if (tipo.includes('pdf')) return 'fa-file-pdf';
+            if (tipo.includes('image')) return 'fa-file-image';
+            if (tipo.includes('word')) return 'fa-file-word';
+            return 'fa-file';
+        }
+
+        // Função auxiliar para formatar tamanho
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        // Função para atualizar status
+        async function updateStatus(status) {
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Status atualizado com sucesso!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('Erro ao atualizar status', 'error');
+                }
+            } catch (error) {
+                showToast('Erro ao atualizar status', 'error');
+            }
+        }
+
+        // Função para atualizar status via formulário
+        async function updateStatusWithForm(event) {
+            event.preventDefault();
+            const status = document.getElementById('status').value;
+            await updateStatus(status);
+        }
+
+        // Função para atualizar responsável
+        async function updateResponsavel(event) {
+            event.preventDefault();
+            const responsavel = document.getElementById('responsavel').value;
+            
+            if (!responsavel) {
+                showToast('Selecione um responsável', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/responsavel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ responsavel })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Responsável atribuído com sucesso!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('Erro ao atribuir responsável', 'error');
+                }
+            } catch (error) {
+                showToast('Erro ao atribuir responsável', 'error');
+            }
+        }
+
+        // Função para adicionar nota
+        async function addNota(event) {
+            event.preventDefault();
+            const nota = document.getElementById('nota').value;
+            
+            if (!nota) {
+                showToast('Digite uma nota', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/nota`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nota, autor: '<%= user.nome %>' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Nota adicionada com sucesso!', 'success');
+                    document.getElementById('nota').value = '';
+                    loadHistorico();
+                } else {
+                    showToast('Erro ao adicionar nota', 'error');
+                }
+            } catch (error) {
+                showToast('Erro ao adicionar nota', 'error');
+            }
+        }
+
+        // Função para enviar anexo
+        async function uploadAnexo(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('anexo');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showToast('Selecione um arquivo', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('anexo', file);
+            
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/anexos`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Anexo enviado com sucesso!', 'success');
+                    fileInput.value = '';
+                    loadAnexos();
+                } else {
+                    showToast('Erro ao enviar anexo', 'error');
+                }
+            } catch (error) {
+                showToast('Erro ao enviar anexo', 'error');
+            }
+        }
+
+        // Função para abrir modal de notificação
+        function openNotificationModal() {
+            document.getElementById('notificationModal').classList.add('active');
+        }
+
+        // Função para fechar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Função para enviar notificação
+        async function sendNotification(event) {
+            event.preventDefault();
+            
+            const metodo = document.getElementById('notificacaoMetodo').value;
+            const mensagem = document.getElementById('mensagem').value;
+            
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> Enviando...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`/solicitacoes/${solicitacaoId}/notificar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ metodo, mensagem, email: clienteEmail, telefone: clienteTelefone })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast(`Notificação enviada via ${metodo}!`, 'success');
+                    closeModal('notificationModal');
+                    document.getElementById('notificationForm').reset();
+                } else {
+                    showToast('Erro ao enviar notificação', 'error');
+                }
+            } catch (error) {
+                showToast('Erro ao enviar notificação', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistorico();
+            loadAnexos();
+        });
+    </script>
+</body>
+</html>
