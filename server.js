@@ -166,11 +166,6 @@ const requireAuth = (req, res, next) => {
     }
 };
 
-app.get('/painel',(req,res)=>{
-
-    res.render("dashboard")
-})
-
 // ==================== ROTAS DE AUTENTICAÇÃO ====================
 app.get('/login', async (req, res) => {
     try {
