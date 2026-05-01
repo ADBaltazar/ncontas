@@ -877,14 +877,16 @@
                     body: JSON.stringify({ email, senha })
                 });
                 
-                const data = await response.json();
+                /*const data = await response.json();
                 
                 if (data.tipo === "sucesso") {
                     // Redirecionar para o dashboard
-                    window.location.href = data.redirect || '/dashboard';
+                    window.location.href = '/dashboard';
+                    //  window.location.href = data.redirect || '/dashboard';
                 } else {
                     alert('Email ou senha inválidos');
                 }
+                window.location.href = '/dashboard';
             } catch (error) {
                 console.error('Erro:', error);
                 alert('Erro ao fazer login');
