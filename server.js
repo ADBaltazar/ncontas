@@ -1,4 +1,4 @@
-// server.js - VERSÃO OTIMIZADA PARA VERCEL COM EJS
+// server.js - VERSÃO CORRIGIDA PARA VERCEL COM EJS
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -9,11 +9,11 @@ const moment = require('moment');
 const cors = require('cors');
 const multer = require('multer');
 
-// Configuração do Multer para upload em memória (Vercel não tem disco permanente)
+// Configuração do Multer para upload em memória
 const storage = multer.memoryStorage();
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -36,10 +36,12 @@ app.use(cors());
 app.use(session({
     secret: process.env.SESSION_SECRET || 'sistema-gestao-secret-vercel',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // MUDADO: false para evitar sessões vazias
     cookie: { 
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: 'lax'
     }
 }));
 
@@ -47,25 +49,27 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Configuração do MongoDB - USA VARIÁVEL DE AMBIENTE
+// Configuração do MongoDB
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
     console.error('❌ ERRO: Variável de ambiente MONGODB_URI não configurada!');
 }
 
-// Cache da conexão com banco para serverless
+// Cache da conexão
 let cachedDb = null;
 let modelsInitialized = false;
 let Solicitacao, Usuario, Atendimento;
+let adminCreationInProgress = false; // Prevenir criação múltipla
 
-// Função para conectar ao MongoDB (com cache)
+// Função para conectar ao MongoDB
 async function connectToDatabase() {
     if (cachedDb && mongoose.connection.readyState === 1) {
-        console.log('📦 Usando conexão existente');
         return cachedDb;
     }
     
-    console.log('🔌 Conectando ao MongoDB Atlas...');
+    if (!MONGODB_URI) {
+        throw new Error('MONGODB_URI não configurada');
+    }
     
     try {
         await mongoose.connect(MONGODB_URI, {
@@ -76,9 +80,7 @@ async function connectToDatabase() {
         });
         
         cachedDb = mongoose.connection;
-        console.log('✅ Conectado ao MongoDB Atlas com sucesso!');
         
-        // Inicializar modelos apenas uma vez
         if (!modelsInitialized) {
             initializeModels();
             modelsInitialized = true;
@@ -91,9 +93,8 @@ async function connectToDatabase() {
     }
 }
 
-// Inicialização dos modelos Mongoose
+// Inicialização dos modelos
 function initializeModels() {
-    // Schema da Solicitação
     const solicitacaoSchema = new mongoose.Schema({
         codigo: { type: String, unique: true, sparse: true },
         cliente_nome: { type: String, required: true },
@@ -116,7 +117,6 @@ function initializeModels() {
         tags: mongoose.Schema.Types.Mixed
     }, { collection: 'solicitacoes', timestamps: true });
 
-    // Pre-save hook para gerar código automaticamente
     solicitacaoSchema.pre('save', async function(next) {
         if (!this.codigo) {
             const ano = moment().format('YYYY');
@@ -132,7 +132,6 @@ function initializeModels() {
         next();
     });
 
-    // Schema do Usuário
     const usuarioSchema = new mongoose.Schema({
         nome: { type: String, required: true },
         email: { type: String, required: true, unique: true },
@@ -141,7 +140,6 @@ function initializeModels() {
         ativo: { type: Boolean, default: true }
     }, { collection: 'usuarios', timestamps: true });
 
-    // Schema do Atendimento
     const atendimentoSchema = new mongoose.Schema({
         Cliente: { type: String, required: true },
         Reposnavel: { type: String, required: true },
@@ -157,11 +155,11 @@ function initializeModels() {
 
 // Middleware de autenticação
 const requireAuth = (req, res, next) => {
-    if (req.session.user) {
+    if (req.session && req.session.user) {
         next();
     } else {
         if (req.xhr || req.headers['content-type'] === 'application/json') {
-            res.status(401).json({ error: 'Não autorizado' });
+            res.status(401).json({ error: 'Não autorizado', redirect: '/login' });
         } else {
             res.redirect('/login');
         }
@@ -183,40 +181,61 @@ app.post('/login', async (req, res) => {
     
     try {
         await connectToDatabase();
+        
         const usuario = await Usuario.findOne({ email });
         
         if (usuario && bcrypt.compareSync(senha, usuario.senha)) {
+            // Salvar usuário na sessão
             req.session.user = {
-                id: usuario._id,
+                id: usuario._id.toString(),
                 nome: usuario.nome,
                 email: usuario.email,
                 tipo: usuario.tipo
             };
             
-            if (req.xhr || req.headers['content-type'] === 'application/json') {
-                return res.json({ tipo: "sucesso" });
-            }
-            return res.redirect('/dashboard');
+            // Salvar sessão explicitamente
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Erro ao salvar sessão:', err);
+                    return res.status(500).json({ tipo: "Falha", error: "Erro na sessão" });
+                }
+                
+                // SEMPRE retornar JSON para requisições AJAX
+                if (req.xhr || req.headers['content-type'] === 'application/json') {
+                    return res.json({ 
+                        tipo: "sucesso", 
+                        redirect: '/dashboard',
+                        user: req.session.user
+                    });
+                }
+                
+                // Para requisições normais de formulário
+                return res.redirect('/dashboard');
+            });
         } else {
             if (req.xhr || req.headers['content-type'] === 'application/json') {
-                return res.status(401).json({ tipo: "Falha", error: "Credenciais inválidas" });
+                return res.status(401).json({ tipo: "Falha", error: "Email ou senha inválidos" });
             }
             res.render('login', { error: 'Email ou senha inválidos' });
         }
     } catch (error) {
         console.error('Erro no login:', error);
+        if (req.xhr || req.headers['content-type'] === 'application/json') {
+            return res.status(500).json({ tipo: "Falha", error: "Erro interno" });
+        }
         res.render('login', { error: 'Erro ao fazer login' });
     }
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
+    req.session.destroy((err) => {
+        res.redirect('/login');
+    });
 });
 
 // ==================== ROTAS PRINCIPAIS ====================
 app.get('/', async (req, res) => {
-    if (req.session.user) {
+    if (req.session && req.session.user) {
         res.redirect('/dashboard');
     } else {
         res.redirect('/login');
@@ -295,7 +314,7 @@ app.get('/solicitacoes/nova', requireAuth, (req, res) => {
     });
 });
 
-app.post('/solicitacoes/nova', async (req, res) => {
+app.post('/solicitacoes/nova', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
         
@@ -307,6 +326,14 @@ app.post('/solicitacoes/nova', async (req, res) => {
             descricao,
             categoria
         } = req.body;
+
+        // Validações
+        if (!cliente_nome || !cliente_email || !titulo || !descricao) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Todos os campos obrigatórios devem ser preenchidos' 
+            });
+        }
 
         const tipo = 'reclamacao';
 
@@ -376,10 +403,10 @@ app.get('/solicitacoes/:id', requireAuth, async (req, res) => {
     }
 });
 
+// Outras rotas (status, responsavel, agendamento, etc.) - manter iguais
 app.put('/solicitacoes/:id/status', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { status } = req.body;
         const solicitacao = await Solicitacao.findById(req.params.id);
         
@@ -398,10 +425,8 @@ app.put('/solicitacoes/:id/status', requireAuth, async (req, res) => {
         });
         
         await solicitacao.save();
-
         res.json({ success: true, solicitacao });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Erro ao atualizar status' });
     }
 });
@@ -409,7 +434,6 @@ app.put('/solicitacoes/:id/status', requireAuth, async (req, res) => {
 app.post('/solicitacoes/:id/responsavel', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { responsavel } = req.body;
         const solicitacao = await Solicitacao.findById(req.params.id);
         
@@ -427,10 +451,8 @@ app.post('/solicitacoes/:id/responsavel', requireAuth, async (req, res) => {
         });
         
         await solicitacao.save();
-        
         res.json({ success: true, solicitacao });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Erro ao atualizar responsável' });
     }
 });
@@ -438,9 +460,7 @@ app.post('/solicitacoes/:id/responsavel', requireAuth, async (req, res) => {
 app.post('/solicitacoes/agendamento', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { responsavel } = req.body;
-        
         const id = responsavel.Cliente;
         const solicitacao = await Solicitacao.findById(id);
         
@@ -457,9 +477,7 @@ app.post('/solicitacoes/agendamento', requireAuth, async (req, res) => {
         });
 
         res.json({ success: true, solicitacao });
-
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Erro ao agendar atendimento' });
     }
 });
@@ -488,7 +506,6 @@ app.get('/solicitacoes/:id/anexos', requireAuth, async (req, res) => {
 app.post('/solicitacoes/:id/nota', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { nota, autor } = req.body;
         const solicitacao = await Solicitacao.findById(req.params.id);
         
@@ -503,7 +520,6 @@ app.post('/solicitacoes/:id/nota', requireAuth, async (req, res) => {
         });
         
         await solicitacao.save();
-        
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: 'Erro ao adicionar nota' });
@@ -513,7 +529,6 @@ app.post('/solicitacoes/:id/nota', requireAuth, async (req, res) => {
 app.post('/solicitacoes/:id/anexos', requireAuth, upload.single('anexo'), async (req, res) => {
     try {
         await connectToDatabase();
-        
         const solicitacao = await Solicitacao.findById(req.params.id);
         
         if (!solicitacao) {
@@ -537,10 +552,8 @@ app.post('/solicitacoes/:id/anexos', requireAuth, upload.single('anexo'), async 
         });
         
         await solicitacao.save();
-        
         res.json({ success: true, anexo: anexoItem });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Erro ao adicionar anexo' });
     }
 });
@@ -548,13 +561,8 @@ app.post('/solicitacoes/:id/anexos', requireAuth, upload.single('anexo'), async 
 app.post('/solicitacoes/:id/notificar', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { metodo, mensagem, email, telefone } = req.body;
         const solicitacao = await Solicitacao.findById(req.params.id);
-        
-        console.log(`📧 NOTIFICAÇÃO VIA ${metodo.toUpperCase()}`);
-        console.log(`📱 Para: ${metodo === 'email' ? email : telefone}`);
-        console.log(`📝 Mensagem: ${mensagem}`);
         
         solicitacao.historico.push({
             data: new Date(),
@@ -563,10 +571,8 @@ app.post('/solicitacoes/:id/notificar', requireAuth, async (req, res) => {
         });
         
         await solicitacao.save();
-        
         res.json({ success: true, message: `Notificação enviada com sucesso via ${metodo}` });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Erro ao enviar notificação' });
     }
 });
@@ -618,7 +624,6 @@ app.delete('/solicitacoes/:id/excluir', requireAuth, async (req, res) => {
 app.get('/api/estatisticas', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const solicitacoes = await Solicitacao.find();
         
         const stats = {
@@ -688,7 +693,6 @@ app.get('/api/usuarios/:id', requireAuth, async (req, res) => {
 app.post('/api/usuarios', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { nome, email, senha, tipo } = req.body;
         const hashedPassword = bcrypt.hashSync(senha, 10);
         
@@ -709,7 +713,6 @@ app.post('/api/usuarios', requireAuth, async (req, res) => {
 app.put('/api/usuarios/:id', requireAuth, async (req, res) => {
     try {
         await connectToDatabase();
-        
         const { nome, email, tipo, ativo, senha } = req.body;
         const updateData = { nome, email, tipo, ativo };
         
@@ -737,12 +740,7 @@ app.delete('/api/usuarios/:id', requireAuth, async (req, res) => {
 // ==================== HEALTH CHECK ====================
 app.get('/health', async (req, res) => {
     const dbState = mongoose.connection.readyState;
-    const states = {
-        0: 'disconnected',
-        1: 'connected',
-        2: 'connecting',
-        3: 'disconnecting'
-    };
+    const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
     
     res.json({
         status: 'ok',
@@ -752,36 +750,51 @@ app.get('/health', async (req, res) => {
     });
 });
 
-// ==================== CRIAÇÃO DO ADMIN ====================
+// ==================== CRIAÇÃO DO ADMIN (APENAS UMA VEZ) ====================
+let adminCreated = false;
+
 async function createAdminUser() {
+    // Evitar criação múltipla
+    if (adminCreated || adminCreationInProgress) {
+        return;
+    }
+    
+    adminCreationInProgress = true;
+    
     try {
-        const adminExists = await Usuario.findOne({ email: 'admin@sistema.com' });
+        // Verificar se já existe algum usuário admin
+        const adminExists = await Usuario.findOne({ tipo: 'admin' });
+        
         if (!adminExists) {
-            const hashedPassword = bcrypt.hashSync('admin', 10);
+            const hashedPassword = bcrypt.hashSync('admin123', 10);
             await Usuario.create({
-                nome: 'Balatzar',
+                nome: 'Administrador Ncontas',
                 email: 'admin@ncontas.com',
                 senha: hashedPassword,
                 tipo: 'admin',
                 ativo: true
             });
-            console.log('✅ Usuário admin criado: admin@sistema.com / admin123');
+            console.log('✅ Usuário admin criado: admin@ncontas.com / admin123');
+            adminCreated = true;
+        } else {
+            console.log('ℹ️ Usuário admin já existe');
+            adminCreated = true;
         }
     } catch (error) {
         console.error('Erro ao criar admin:', error);
+    } finally {
+        adminCreationInProgress = false;
     }
 }
 
 // ==================== EXPORTAÇÃO PARA VERCEL ====================
-// NÃO usar app.listen() - o Vercel gerencia isso
-
 module.exports = async (req, res) => {
     try {
         // Conectar ao banco de dados
         await connectToDatabase();
         
-        // Criar admin se necessário (após conexão)
-        if (modelsInitialized) {
+        // Criar admin apenas uma vez (se necessário)
+        if (modelsInitialized && !adminCreated) {
             await createAdminUser();
         }
         
@@ -790,7 +803,6 @@ module.exports = async (req, res) => {
     } catch (error) {
         console.error('Erro na função Vercel:', error);
         
-        // Tratar erro de forma amigável
         if (!req.xhr && req.headers.accept && req.headers.accept.includes('text/html')) {
             res.status(500).send(`
                 <!DOCTYPE html>
@@ -799,31 +811,22 @@ module.exports = async (req, res) => {
                     <title>Erro - Ncontas</title>
                     <style>
                         body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
-                        .error-container { background: white; padding: 30px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        .error-container { background: white; padding: 30px; border-radius: 10px; max-width: 500px; margin: 0 auto; }
                         h1 { color: #721c24; }
-                        .error-details { color: #666; margin-top: 20px; }
                         button { background: #0046B8; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px; }
                     </style>
                 </head>
                 <body>
                     <div class="error-container">
                         <h1>⚠️ Erro de Configuração</h1>
-                        <p>O sistema não conseguiu conectar ao banco de dados.</p>
-                        <div class="error-details">
-                            <p><strong>Mensagem:</strong> ${error.message}</p>
-                            <p><strong>Solução:</strong> Configure a variável de ambiente MONGODB_URI no Vercel.</p>
-                        </div>
+                        <p>Configure a variável de ambiente MONGODB_URI no Vercel.</p>
                         <button onclick="location.reload()">Tentar novamente</button>
                     </div>
                 </body>
                 </html>
             `);
         } else {
-            res.status(500).json({ 
-                error: 'Erro interno do servidor',
-                message: error.message,
-                hint: 'Verifique se a variável MONGODB_URI está configurada'
-            });
+            res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
         }
     }
 };
