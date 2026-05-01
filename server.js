@@ -295,7 +295,7 @@ app.get('/solicitacoes/nova', requireAuth, (req, res) => {
     });
 });
 
-app.post('/solicitacoes/nova', requireAuth, async (req, res) => {
+app.post('/solicitacoes/nova', async (req, res) => {
     try {
         await connectToDatabase();
         
